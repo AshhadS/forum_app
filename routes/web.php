@@ -31,5 +31,3 @@ Route::post('count', function (Request $request) {
 
 Route::post('api/auth/register', [AuthController::class, 'createUser']);
 Route::post('api/auth/login', [AuthController::class, 'loginUser']);
-
-Route::resource('posts', PostController::class);

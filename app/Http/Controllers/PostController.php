@@ -26,16 +26,6 @@ class PostController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        // this is not being used since its been handled in the front end frame work
-    }
-
-    /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -74,23 +64,16 @@ class PostController extends Controller
      */
     public function show(Post $post)
     {  
+        $request = request();
+        $u = $request->user();
+
         // Return the post belonging to the passed id
         return response()->json([
             'status' => true,
             'message' => 'Show selected post',
             'post' => $post,
+            'user' => $u->id,
         ], 200);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Post  $post
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Post $post)
-    {
-        // this is not being used since its been handled in the front end frame work
     }
 
     /**
@@ -133,9 +116,6 @@ class PostController extends Controller
             'post' => $post_id,
         ], 200);
     }
-
-
-
 
     /**
      * Approve the Post.
