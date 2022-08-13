@@ -33,22 +33,25 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //TODO Check if user is logged in 
-
-
-
-        // TODO Get logged in user ID
-        // Get logged in user ID from token
-        $current_user = 2; 
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
         
+        // Default approval status is un approved
+        $approval_status = 0;
+
+        // Admins post are approved by defaut
+        if($current_user->hasRole('admin')) {
+            $approval_status = 1;
+        }
+
         $post = Post::create([
             'uuid' => Str::uuid()->toString(),
             'question' => $request->question,
-            'created_by' => $current_user,
-            'approved' => 0 // since by default post are no approved
+            'created_by' => $current_user->id,
+            'approved' => $approval_status
         ]);
 
-        //
         return response()->json([
             'status' => true,
             'message' => 'New Post Created',
@@ -106,6 +109,18 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
+
+        // Check is user deleting post is the one who created it 
+        if($current_user->id != $post->created_by) {
+            return response()->json([
+                'status' => false,
+                'message' => 'The post was not created by the user trying to delete it',
+            ], 401);
+        }
+
         // Soft Delete the passed post
         $post_id = $post->id;
         $post->delete();
@@ -125,21 +140,57 @@ class PostController extends Controller
      */
     public function approve(Post $post)
     {
-        // Get token trying to approve the post
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
 
-        // Get if the token has access to approve the post
+        // Only Admins can approve posts
+        if(!$current_user->hasRole('admin')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User Not Authorized',
+            ], 401);
+        }
 
         // Approve the post
+        $post->approved = 1;
+        $post->save();
 
-        // return the post
-
-        //
         return response()->json([
             'status' => true,
-            'message' => 'Delete Selected Post',
+            'message' => 'Post Approved',
+            "post" => $post->id
         ], 200);
     }
 
+    /**
+     * Get all post that are pending approval
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function pending_posts()
+    {
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
+
+        // Only Admins can see pending posts
+        if(!$current_user->hasRole('admin')) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User Not Authorized',
+            ], 401);
+        }
+
+        // Filter for approved posts
+        $approved_posts = Post::where('approved', "0")->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Gets all un-approved posts',
+            'posts' => $approved_posts->toArray(),
+        ], 200);
+    }
 
     
 }

@@ -11,6 +11,11 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+
+    // Temporarily done like this to create admin users
+    // TODO: move this to a config so its more secure
+    private $secret = 'give_me_access';
+
     /**
      * Create User
      * @param Request $request
@@ -18,7 +23,7 @@ class AuthController extends Controller
      */
     public function createUser(Request $request)
     {
-        // try {
+        try {
             //Validated
             $validateUser = Validator::make($request->all(), 
             [
@@ -41,18 +46,28 @@ class AuthController extends Controller
                 'password' => Hash::make($request->password)
             ]);
 
+            // All new users will go as a guest by default
+            $role_name = 'guest';
+
+            // if secret is passed user is registered as an admin
+            if($request->has('secret') && $request->secret == $this->secret) {
+                $role_name = 'admin';
+            }
+
+            $user->assignRole($role_name);
+
             return response()->json([
                 'status' => true,
                 'message' => 'User Created Successfully',
                 'token' => $user->createToken("API TOKEN")->plainTextToken
             ], 200);
 
-        // } catch (\Throwable $th) {
-        //     return response()->json([
-        //         'status' => false,
-        //         'message' => $th->getMessage()
-        //     ], 500);
-        // }
+        } catch (\Throwable $th) {
+            return response()->json([
+                'status' => false,
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
