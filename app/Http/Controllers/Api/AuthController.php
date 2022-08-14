@@ -35,7 +35,7 @@ class AuthController extends Controller
             if($validateUser->fails()){
                 return response()->json([
                     'status' => false,
-                    'message' => 'validation error',
+                    'message' => 'User Validation Failed',
                     'errors' => $validateUser->errors()
                 ], 401);
             }
@@ -87,7 +87,7 @@ class AuthController extends Controller
             if($validateUser->fails()){
                 return response()->json([
                     'status' => false,
-                    'message' => 'validation error',
+                    'message' => 'User Validation failed',
                     'errors' => $validateUser->errors()
                 ], 401);
             }
@@ -96,7 +96,7 @@ class AuthController extends Controller
                 return response()->json([
                     'status' => false,
                     'message' => 'Email & Password does not match with our record.',
-                ], 401);
+                ], 200);
             }
 
             $user = User::where('email', $request->email)->first();

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Validator;
+
 
 class PostController extends Controller
 {
@@ -33,6 +35,20 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
+        //Validated
+        $post_validation = Validator::make($request->all(), 
+        [
+            'question' => 'required',
+        ]);
+
+        if($post_validation->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'Post Validation Failed',
+                'errors' => $post_validation->errors()
+            ], 401);
+        }
+
         // Get Logged in user
         $request = request();
         $current_user = $request->user();
@@ -68,14 +84,29 @@ class PostController extends Controller
     public function show(Post $post)
     {  
         $request = request();
-        $u = $request->user();
+        $current_user = $request->user();
+
+        $post_actions = [
+            'can_edit' => false,
+            'can_approve' => false
+        ];
+
+        // Only allow user who created the post to edit
+        $is_editable = false;
+        if($current_user->id == $post->created_by) {
+            $post_actions['can_edit'] = true;
+        }
+
+        if($current_user->hasRole('admin')) {
+            $post_actions['can_approve'] = true;
+        }
 
         // Return the post belonging to the passed id
         return response()->json([
             'status' => true,
             'message' => 'Show selected post',
             'post' => $post,
-            'user' => $u->id,
+            'post_actions' => $post_actions,
         ], 200);
     }
 
@@ -88,6 +119,32 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
+        //Validated
+        $post_validation = Validator::make($request->all(), 
+        [
+            'question' => 'required',
+        ]);
+
+        if($post_validation->fails()){
+            return response()->json([
+                'status' => false,
+                'message' => 'Post Validation Failed',
+                'errors' => $post_validation->errors()
+            ], 401);
+        }
+
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
+
+        // Check is user updating the post is the one who created it 
+        if($current_user->id != $post->created_by) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Sorry you do not have access to update this post',
+            ], 401);
+        }
+
         // Find the post and update the post
         $updated_post = Post::where('id', $post->id)->update([
             'question'=>$request->question,
@@ -97,7 +154,7 @@ class PostController extends Controller
         return response()->json([
             'status' => true,
             'message' => 'Update Selected Post',
-            'post' => $updated_post->id,
+            'post' => $post->id,
         ], 200);
     }
 
@@ -117,7 +174,7 @@ class PostController extends Controller
         if($current_user->id != $post->created_by) {
             return response()->json([
                 'status' => false,
-                'message' => 'The post was not created by the user trying to delete it',
+                'message' => 'Sorry you dont have access to delete the post',
             ], 401);
         }
 
@@ -138,7 +195,7 @@ class PostController extends Controller
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
-    public function approve(Post $post)
+    public function approve(Request $request, Post $post)
     {
         // Get Logged in user
         $request = request();
