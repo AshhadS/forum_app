@@ -2,7 +2,6 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-// use App\Http\Controllers\PostController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,16 +16,6 @@ use App\Http\Controllers\Api\AuthController;
 
 Route::get('/', function () {
     return view('welcome');
-});
-
-Route::get('/token', function () {
-    return csrf_token(); 
-});
-
-Route::post('count', function (Request $request) {
-    return response()->json([
-        'message' => $request->message,
-    ]);
 });
 
 Route::post('api/auth/register', [AuthController::class, 'createUser']);

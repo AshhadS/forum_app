@@ -46,7 +46,7 @@ class PostController extends Controller
                 'status' => false,
                 'message' => 'Post Validation Failed',
                 'errors' => $post_validation->errors()
-            ], 401);
+            ], 200);
         }
 
         // Get Logged in user
@@ -61,11 +61,15 @@ class PostController extends Controller
             $approval_status = 1;
         }
 
+        // In the future take this from the request
+        $product_id = 1;
+
         $post = Post::create([
             'uuid' => Str::uuid()->toString(),
             'question' => $request->question,
             'created_by' => $current_user->id,
-            'approved' => $approval_status
+            'approved' => $approval_status,
+            'product_id' => $product_id
         ]);
 
         return response()->json([
@@ -130,7 +134,7 @@ class PostController extends Controller
                 'status' => false,
                 'message' => 'Post Validation Failed',
                 'errors' => $post_validation->errors()
-            ], 401);
+            ], 200);
         }
 
         // Get Logged in user
@@ -142,7 +146,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Sorry you do not have access to update this post',
-            ], 401);
+            ], 200);
         }
 
         // Find the post and update the post
@@ -175,7 +179,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'Sorry you dont have access to delete the post',
-            ], 401);
+            ], 200);
         }
 
         // Soft Delete the passed post
@@ -206,7 +210,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'User Not Authorized',
-            ], 401);
+            ], 200);
         }
 
         // Approve the post
@@ -236,7 +240,7 @@ class PostController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'User Not Authorized',
-            ], 401);
+            ], 200);
         }
 
         // Filter for approved posts

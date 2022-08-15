@@ -7,6 +7,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
+use App\Post;
+use App\Comments;
 
 class User extends Authenticatable
 {
@@ -38,4 +40,12 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function post(){
+        return $this->hasMany(Post::class, 'created_by');
+    }
+
+    public function comments(){
+        return $this->hasMany(Comments::class, 'created_by');
+    }
 }

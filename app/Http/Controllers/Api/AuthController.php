@@ -40,19 +40,27 @@ class AuthController extends Controller
                 ], 401);
             }
 
+
+            // All new users will go as a guest by default
+            $role_name = 'guest';
+
+            // *Use this in the future
+            // if secret is passed user is registered as an admin
+            // if($request->has('secret') && $request->secret == $this->secret) {
+            //     $role_name = 'admin';
+            // }
+
+            // *For the moment
+            // First user will be an admin
+            if(User::all()->count() == 0) {
+                $role_name = 'admin';
+            }
+
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
                 'password' => Hash::make($request->password)
             ]);
-
-            // All new users will go as a guest by default
-            $role_name = 'guest';
-
-            // if secret is passed user is registered as an admin
-            if($request->has('secret') && $request->secret == $this->secret) {
-                $role_name = 'admin';
-            }
 
             $user->assignRole($role_name);
 
@@ -104,7 +112,7 @@ class AuthController extends Controller
             return response()->json([
                 'status' => true,
                 'message' => 'User Logged In Successfully',
-                'token' => $user->createToken("API TOKEN")->plainTextToken
+                'token' => $user->createToken("API TOKEN")->plainTextToken,
             ], 200);
 
         } catch (\Throwable $th) {
