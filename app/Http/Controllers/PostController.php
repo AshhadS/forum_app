@@ -25,16 +25,21 @@ class PostController extends Controller
 
         // Filter for approved posts for guests
         $posts = Post::where('approved', "1")->get();
+
+        $can_approve = false;
         
         // Admins can see all posts
         if($current_user->hasRole('admin')) {
             $posts = Post::all();
+            $can_approve = true;
         }
 
         return response()->json([
             'status' => true,
             'message' => 'Gets all approved posts',
             'posts' => $posts->toArray(),
+            'can_approve' => $can_approve,
+            'user' => $current_user->id,
         ], 200);
     }
 
