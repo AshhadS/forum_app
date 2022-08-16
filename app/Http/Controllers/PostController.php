@@ -286,8 +286,16 @@ class PostController extends Controller
         // Get Post of the user matching search criteria 
         $users_with_posts = User::where('email', 'like', '%'.$term.'%')->with(['post'])->get();
 
+        // Loop all users with posts
         foreach ($users_with_posts->toArray() as $user) {
-            $posts[] = $user['post'];
+            // Skip if user does not have posts
+            if(!isset($user['post'])) 
+                continue;
+
+            // Loop all posts and extract to flat array
+            foreach ($user['post'] as $post) {
+                $posts[] = $post;
+            }
         }
 
         // No Results found
