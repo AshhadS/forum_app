@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Post;
+use App\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Validator;
@@ -17,13 +18,23 @@ class PostController extends Controller
      */
     public function index()
     {
-        // Filter for approved posts
-        $approved_posts = Post::where('approved', "1")->get();
+
+        // Get Logged in user
+        $request = request();
+        $current_user = $request->user();
+
+        // Filter for approved posts for guests
+        $posts = Post::where('approved', "1")->get();
+        
+        // Admins can see all posts
+        if($current_user->hasRole('admin')) {
+            $posts = Post::all();
+        }
 
         return response()->json([
             'status' => true,
             'message' => 'Gets all approved posts',
-            'posts' => $approved_posts->toArray(),
+            'posts' => $posts->toArray(),
         ], 200);
     }
 
@@ -66,7 +77,7 @@ class PostController extends Controller
 
         $post = Post::create([
             'uuid' => Str::uuid()->toString(),
-            'question' => $request->question,
+            'question' => strip_tags($request->question),
             'created_by' => $current_user->id,
             'approved' => $approval_status,
             'product_id' => $product_id
@@ -151,7 +162,7 @@ class PostController extends Controller
 
         // Find the post and update the post
         $updated_post = Post::where('id', $post->id)->update([
-            'question'=>$request->question,
+            'question'=>strip_tags($request->question),
             'approved'=>'0' // question change needs to again be approved
         ]);
 
@@ -196,6 +207,7 @@ class PostController extends Controller
     /**
      * Approve the Post.
      *
+     * @param  \Illuminate\Http\Request  $request
      * @param  \App\Post  $post
      * @return \Illuminate\Http\Response
      */
@@ -253,5 +265,40 @@ class PostController extends Controller
         ], 200);
     }
 
-    
+    /**
+     * Get all post that match the criteria
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request) {
+        // Get the sanitized search term from the request
+        $term = strip_tags($request->search);
+
+        // Get posts matching search criteria
+        $posts = Post::where('question', 'like', '%'.$term."%")->get()->toArray();
+
+        // Get Post of the user matching search criteria 
+        $users_with_posts = User::where('email', 'like', '%'.$term.'%')->with(['post'])->get();
+
+        foreach ($users_with_posts->toArray() as $user) {
+            $posts[] = $user['post'];
+        }
+
+        // No Results found
+        if(count($posts) <= 0) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No post matching the search criteria',
+                'posts' => $posts,
+            ], 200);
+        }
+
+        // Success Return Posts
+        return response()->json([
+            'status' => true,
+            'message' => 'Gets all posts matching search criteria',
+            'posts' => $posts,
+        ], 200);
+    }
 }

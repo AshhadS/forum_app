@@ -22,6 +22,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 });
 
 // Posts
+Route::post('posts/search', [App\Http\Controllers\PostController::class, 'search'])->middleware('auth:sanctum');
 Route::post('posts/{post}/approve', [App\Http\Controllers\PostController::class, 'approve'])->middleware('auth:sanctum');
 Route::get('posts/pending', [App\Http\Controllers\PostController::class, 'pending_posts'])->middleware('auth:sanctum');
 Route::apiResource('posts', PostController::class)->middleware('auth:sanctum');

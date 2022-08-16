@@ -57,9 +57,9 @@ class AuthController extends Controller
             }
 
             $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password)
+                'name' => strip_tags($request->name),
+                'email' => strip_tags($request->email),
+                'password' => Hash::make(strip_tags($request->password))
             ]);
 
             $user->assignRole($role_name);
@@ -107,12 +107,13 @@ class AuthController extends Controller
                 ], 200);
             }
 
-            $user = User::where('email', $request->email)->first();
+            $user = User::where('email', strip_tags($request->email))->first();
 
             return response()->json([
                 'status' => true,
                 'message' => 'User Logged In Successfully',
                 'token' => $user->createToken("API TOKEN")->plainTextToken,
+                'username' => $user->email,
             ], 200);
 
         } catch (\Throwable $th) {

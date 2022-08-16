@@ -26,7 +26,7 @@ class CommentsController extends Controller
             return response()->json([
                 'status' => false,
                 'message' => 'No Comments found',
-                'post' => $post->id,
+                'post' => $model_id,
             ], 200);
         }
 
@@ -66,7 +66,7 @@ class CommentsController extends Controller
 
         // Insert the comment
         $comment = Comments::create([
-            'body' => $request->body,
+            'body' => strip_tags($request->body),
             'created_by' => $current_user->id,
             'model' => $model,
             'model_id' => $model_id
@@ -76,7 +76,7 @@ class CommentsController extends Controller
             'status' => true,
             'message' => 'Comment Added',
             'comment' => $comment->id,
-            'post' => $post->id,
+            'model' => $model_id,
         ], 200);
 
     }
@@ -85,8 +85,8 @@ class CommentsController extends Controller
      * Returns an entity from the Provided Model & id.
      *
      * @param  $model    - model name
-     * @param  $model_id - 
-     * @return \Illuminate\Http\Response
+     * @param  $model_id - primary key of the model
+     * @return \App\Model
      */
     private static function getEntity($model, $model_id) {
         switch ($model) {
